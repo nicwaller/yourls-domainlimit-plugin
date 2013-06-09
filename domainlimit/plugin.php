@@ -1,17 +1,17 @@
 <?php
 /*
 Plugin Name: Domain Limiter
-Plugin URI: http://code.google.com/p/yourls-domainlimit-plugin/
+Plugin URI: https://github.com/nicwaller/yourls-domainlimit-plugin
 Description: Only allow URLs from admin-specified domains
-Version: 1.0
+Version: 1.0.1
 Author: nicwaller
-Author URI: http://code.google.com/u/101717938102134699062/
+Author URI: https://github.com/nicwaller
 */
 
 // No direct call
 if( !defined( 'YOURLS_ABSPATH' ) ) die();
 
-yourls_add_filter( 'shunt_add_new_link', 'domainlimit_link_filter' );
+yourls_add_filter( 'pre_add_new_link', 'domainlimit_link_filter' );
 
 function domainlimit_link_filter( $original_return, $url, $keyword = '', $title = '' ) {
 	if ( domainlimit_environment_check() != true ) {
