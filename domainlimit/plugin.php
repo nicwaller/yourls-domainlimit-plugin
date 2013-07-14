@@ -11,7 +11,7 @@ Author URI: https://github.com/nicwaller
 // No direct call
 if( !defined( 'YOURLS_ABSPATH' ) ) die();
 
-yourls_add_filter( 'pre_add_new_link', 'domainlimit_link_filter' );
+yourls_add_filter( 'shunt_add_new_link', 'domainlimit_link_filter' );
 
 function domainlimit_link_filter( $original_return, $url, $keyword = '', $title = '' ) {
 	if ( domainlimit_environment_check() != true ) {
