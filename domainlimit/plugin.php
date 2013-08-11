@@ -3,7 +3,7 @@
 Plugin Name: Domain Limiter
 Plugin URI: https://github.com/nicwaller/yourls-domainlimit-plugin
 Description: Only allow URLs from admin-specified domains
-Version: 1.0.2
+Version: 1.0.3
 Author: nicwaller
 Author URI: https://github.com/nicwaller
 */
@@ -25,6 +25,18 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	global $domainlimit_list;
 	$domain_whitelist = $domainlimit_list;
+
+	// The plugin hook gives us the raw URL input by the user, but
+	// it needs some cleanup before it's suitable for parse_url().
+	$url = yourls_encodeURI( $url );
+	$url = yourls_escape( yourls_sanitize_url( $url) );
+	if ( !$url || $url == 'http://' || $url == 'https://' ) {
+		$return['status']    = 'fail';
+		$return['code']      = 'error:nourl';
+		$return['message']   = yourls__( 'Missing or malformed URL' );
+		$return['errorCode'] = '400';
+		return yourls_apply_filter( 'add_new_link_fail_nourl', $return, $url, $keyword, $title );
+	}
 
 	$allowed = false;
 	$requested_domain = parse_url($url, PHP_URL_HOST);
