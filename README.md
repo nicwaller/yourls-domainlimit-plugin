@@ -7,7 +7,7 @@ You might want to limit the domains allowed for shortlinks so that your brand is
 
 Installation
 ------------
-1. Download the [latest release](https://github.com/nicwaller/yourls-domainlimit-plugin/tags)
+1. Download the [latest release](https://github.com/nicwaller/yourls-domainlimit-plugin/releases)
 1. Copy the plugin folder into your user/plugins folder for YOURLS.
 1. Activate the plugin with the plugin manager in the admin interface.
 
