@@ -3,7 +3,7 @@
 Plugin Name: Domain Limiter
 Plugin URI: https://github.com/nicwaller/yourls-domainlimit-plugin
 Description: Only allow URLs from admin-specified domains
-Version: 1.0.4
+Version: 1.1.0
 Author: nicwaller
 Author URI: https://github.com/nicwaller
 */
