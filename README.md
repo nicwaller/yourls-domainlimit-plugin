@@ -16,6 +16,9 @@ Configuration
 Define a list of allowed domains in your user/config.php. For example:
 `$domainlimit_list = array( 'mydomain.com', 'otherdomain.com' );`
 
+You may also optionally specify a list of usernames that are exempt from this restriction.
+`domainlimit_exempt_users = array( 'bobadmin' );`
+
 License
 -------
 Copyright 2013 Nicholas Waller (code@nicwaller.com)

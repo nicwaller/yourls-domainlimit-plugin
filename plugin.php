@@ -23,6 +23,12 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 		return $err;
 	}
 
+	// If the user is exempt, don't even bother checking.
+	global $domainlimit_exempt_users;
+	if ( in_array( YOURLS_USER, $domainlimit_exempt_users ) ) {
+		return $original_return;
+	}
+
 	global $domainlimit_list;
 	$domain_whitelist = $domainlimit_list;
 
