@@ -14,11 +14,11 @@ if( !defined( 'YOURLS_ABSPATH' ) ) die();
 yourls_add_filter( 'shunt_add_new_link', 'domainlimit_link_filter' );
 
 function domainlimit_link_filter( $original_return, $url, $keyword = '', $title = '' ) {
-	if ( domainlimit_environment_check() != true ) {
+	if ( domainlimit_environment_check() != true || domainexclude_environment_check() != true ) {
 		$err = array();
 		$err['status'] = 'fail';
 		$err['code'] = 'error:configuration';
-		$err['message'] = 'Problem with domain limit configuration. Check PHP error log.';
+		$err['message'] = 'Problem with Domain Limiter plugin configuration. Check PHP error log.';
 		$err['errorCode'] = '500';
 		return $err;
 	}
@@ -31,6 +31,9 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	global $domainlimit_list;
 	$domain_whitelist = $domainlimit_list;
+	
+	global $domainexclude_list;
+	$domain_blacklist = $domainexclude_list;
 
 	// The plugin hook gives us the raw URL input by the user, but
 	// it needs some cleanup before it's suitable for parse_url().
@@ -46,9 +49,19 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	$allowed = false;
 	$requested_domain = parse_url($url, PHP_URL_HOST);
+	
+	// check against whitelisted domains & subdomains
 	foreach ( $domain_whitelist as $domain_permitted ) {
 		if ( domainlimit_is_subdomain( $requested_domain, $domain_permitted ) ) {
 			$allowed = true;
+			break;
+		}
+	}
+	
+	// check against blacklisted domains & subdomains
+	foreach ( $domain_blacklist as $domain_excluded ) {
+		if ( domainlimit_is_subdomain( $requested_domain, $domain_excluded ) ) {
+			$allowed = false;
 			break;
 		}
 	}
@@ -60,7 +73,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 	$return = array();
 	$return['status'] = 'fail';
 	$return['code'] = 'error:disallowedhost';
-	$return['message'] = 'URL must be in ' . implode(', ', $domain_whitelist);
+	$return['message'] = 'URL must be in "' . implode(', ', $domain_whitelist) . '", and cannot be in "' . implode(', ', $domain_blacklist) . '"';
 	$return['errorCode'] = '400';
 	return $return;
 }
@@ -84,7 +97,7 @@ function domainlimit_is_subdomain( $test_domain, $parent_domain ) {
 	return ( $parent_domain == substr( $test_domain, 0-$chklen ) );
 }
 
-// returns true if everything is configured right
+// returns true if $domainlimit_list is defined
 function domainlimit_environment_check() {
 	global $domainlimit_list;
 	if ( !isset( $domainlimit_list ) ) {
@@ -94,6 +107,22 @@ function domainlimit_environment_check() {
 		// be friendly and allow non-array definitions
 		$domain = $domainlimit_list;
 		$domainlimit_list = array( $domain );
+		return true;
+	}
+	return true;
+}
+
+
+// returns true if $domainexclude_list is defined
+function domainexclude_environment_check() {
+	global $domainexclude_list;
+	if ( !isset( $domainexclude_list ) ) {
+		error_log('Missing definition of $domainexclude_list in user/config.php');
+		return false;
+	} else if ( isset( $domainexclude_list ) && !is_array( $domainexclude_list ) ) {
+		// be friendly and allow non-array definitions
+		$domain = $domainexclude_list;
+		$domainexclude_list = array( $domain );
 		return true;
 	}
 	return true;
