@@ -31,7 +31,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	global $domainlimit_list;
 	$domain_whitelist = $domainlimit_list;
-	
+
 	global $domainexclude_list;
 	$domain_blacklist = $domainexclude_list;
 
@@ -49,7 +49,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	$allowed = false;
 	$requested_domain = parse_url($url, PHP_URL_HOST);
-	
+
 	// check against whitelisted domains & subdomains
 	foreach ( $domain_whitelist as $domain_permitted ) {
 		if ( domainlimit_is_subdomain( $requested_domain, $domain_permitted ) ) {
@@ -57,7 +57,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 			break;
 		}
 	}
-	
+
 	// check against blacklisted domains & subdomains
 	foreach ( $domain_blacklist as $domain_excluded ) {
 		if ( domainlimit_is_subdomain( $requested_domain, $domain_excluded ) ) {
@@ -113,17 +113,16 @@ function domainlimit_environment_check() {
 }
 
 
-// returns true if $domainexclude_list is defined
+// logs warning if $domainexclude_list is not defined
 function domainexclude_environment_check() {
 	global $domainexclude_list;
 	if ( !isset( $domainexclude_list ) ) {
-		error_log('Missing definition of $domainexclude_list in user/config.php');
-		return false;
+		error_log('Missing definition of $domainexclude_list in user/config.php, using an empty list');
+		$domainexclude_list = array();
 	} else if ( isset( $domainexclude_list ) && !is_array( $domainexclude_list ) ) {
 		// be friendly and allow non-array definitions
 		$domain = $domainexclude_list;
 		$domainexclude_list = array( $domain );
-		return true;
 	}
 	return true;
 }
