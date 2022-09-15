@@ -25,7 +25,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	// If the user is exempt, don't even bother checking.
 	global $domainlimit_exempt_users;
-	if ( in_array( YOURLS_USER, $domainlimit_exempt_users ) ) {
+	if ( is_array( $domainlimit_exempt_users ) && in_array( YOURLS_USER, $domainlimit_exempt_users ) ) {
 		return $original_return;
 	}
 
