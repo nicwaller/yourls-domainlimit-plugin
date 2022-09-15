@@ -34,8 +34,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	// The plugin hook gives us the raw URL input by the user, but
 	// it needs some cleanup before it's suitable for parse_url().
-	$url = yourls_encodeURI( $url );
-	$url = yourls_escape( yourls_sanitize_url( $url) );
+	$url = yourls_sanitize_url( $url );
 	if ( !$url || $url == 'http://' || $url == 'https://' ) {
 		$return['status']    = 'fail';
 		$return['code']      = 'error:nourl';
