@@ -25,7 +25,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 
 	// If the user is exempt, don't even bother checking.
 	global $domainlimit_exempt_users;
-	if ( in_array( YOURLS_USER, $domainlimit_exempt_users ) ) {
+	if ( defined('YOURLS_USER') && in_array( YOURLS_USER, $domainlimit_exempt_users ) ) {
 		return $original_return;
 	}
 
@@ -35,7 +35,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 	// The plugin hook gives us the raw URL input by the user, but
 	// it needs some cleanup before it's suitable for parse_url().
 	$url = yourls_encodeURI( $url );
-	$url = yourls_escape( yourls_sanitize_url( $url) );
+	// $url = yourls_escape( yourls_sanitize_url( $url) );
 	if ( !$url || $url == 'http://' || $url == 'https://' ) {
 		$return['status']    = 'fail';
 		$return['code']      = 'error:nourl';
