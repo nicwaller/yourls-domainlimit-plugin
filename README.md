@@ -1,6 +1,8 @@
 yourls-domainlimit-plugin
 =========================
 
+[![test status](https://github.com/nicwaller/yourls-domainlimit-plugin/actions/workflows/test.yaml/badge.svg?branch=master)](https://github.com/nicwaller/yourls-domainlimit-plugin/actions/workflows/test.yaml)
+
 This plugin for [YOURLS](https://github.com/YOURLS/YOURLS) limits the creation of shorturls to a list of domains that you define.
 
 You might want to limit the domains allowed for shortlinks so that your brand is not misused by people linking to resources outside your domain and outside your control.
