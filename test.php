@@ -10,6 +10,12 @@ function yourls_add_filter() {
 	$did_register = true;
 }
 
+function yourls_add_action($event, $callback) {
+	// this space intentionally left blank
+	// the function must be declared so the plugin implementation can call it
+	// but we don't really need to test it
+};
+
 function yourls__($v) {
 	return $v;
 }
