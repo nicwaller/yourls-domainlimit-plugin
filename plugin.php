@@ -3,7 +3,7 @@
 Plugin Name: Domain Limiter
 Plugin URI: https://github.com/nicwaller/yourls-domainlimit-plugin
 Description: Only allow URLs from admin-specified domains
-Version: 1.1.1
+Version: 1.2.0
 Author: nicwaller
 Author URI: https://github.com/nicwaller
 */
@@ -98,4 +98,69 @@ function domainlimit_environment_check() {
 		return true;
 	}
 	return true;
+}
+
+yourls_add_action( 'plugins_loaded', 'domainlimit_init' );
+function domainlimit_init() {
+	global $domainlimit_hide_plugin_page;
+	if ($domainlimit_hide_plugin_page) {
+		// do nothing
+	} else {
+		yourls_register_plugin_page( 'domainlimit', 'Domain Limiter', 'domainlimit_display_page' );
+	}
+}
+
+function domainlimit_display_page() {
+	global $domainlimit_list;
+	global $domainlimit_exempt_users;
+
+	echo "<h2>Domain Limiter Settings</h2>\n";
+	if ( !domainlimit_environment_check() ) {
+		echo "<p3>Error in domain limiter configuration</p3>\n";
+		return;
+	}
+
+	echo "<h3>Allowed Domains</h3>\n";
+	echo '<aside>Configured using <span style="font-family: monospace">$domainlimit_list</span> in config.php</aside>';
+	domainlimit_html_list($domainlimit_list);
+
+	echo "<h3>Exempt Users</h3>\n";
+	echo '<aside>Configured using <span style="font-family: monospace">$domainlimit_exempt_users</span> in config.php</aside>';
+	domainlimit_html_list($domainlimit_exempt_users);
+
+	echo "<h3>Plugin File</h3>\n";
+	echo "<pre>" . __FILE__ . "</pre>\n";
+
+	echo "<h3>Plugin Version</h3>\n";
+	echo "<pre>" . domainlimit_plugin_version() . "</pre>\n";
+	$plugin_uri = domainlimit_plugin_uri();
+	echo "<p>Check for updates: <a href=\"$plugin_uri\">$plugin_uri</a></p>";
+}
+
+function domainlimit_plugin_version() {
+	$contents = file_get_contents(__FILE__);
+	$matches = array();
+	preg_match_all("/^Version: (.*)$/m", $contents, $matches);
+	return $matches[1][0];
+}
+
+function domainlimit_plugin_uri() {
+	$contents = file_get_contents(__FILE__);
+	$matches = array();
+	preg_match_all("/^Plugin URI: (https:.*)$/m", $contents, $matches);
+	return $matches[1][0];
+}
+
+
+function domainlimit_html_list($list) {
+	echo "<ul>\n";
+	if (is_array( $list )) {
+		foreach ( $list as $domain ) {
+			echo "  <li>$domain</li>\n";
+		}
+	} else {
+		echo "<li><em>none configured</em></li>\n";
+	}
+	echo "</ul>\n";
+
 }
