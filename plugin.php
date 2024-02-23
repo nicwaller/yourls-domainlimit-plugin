@@ -3,7 +3,7 @@
 Plugin Name: Domain Limiter
 Plugin URI: https://github.com/nicwaller/yourls-domainlimit-plugin
 Description: Only allow URLs from admin-specified domains
-Version: 1.1.1
+Version: 1.2.0
 Author: nicwaller
 Author URI: https://github.com/nicwaller
 */
@@ -31,8 +31,22 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 		}
 	}
 
-	global $domainlimit_list;
-	$domain_whitelist = $domainlimit_list;
+	if (isset($GLOBALS['domainlimit_list'])) {
+		$domain_allowlist = $GLOBALS['domainlimit_list'];
+	} else {
+		$domain_allowlist = array();
+	}
+
+	if (isset($GLOBALS['domainlimit_denylist'])) {
+		$domain_denylist = $GLOBALS['domainlimit_denylist'];
+	} else {
+		$domain_denylist = array();
+	}
+
+	// if we have no allowlist or denylist then don't block anything ("fail open")
+	if ( count($domain_denylist) == 0 && count($domain_allowlist) == 0 ) {
+		return $original_return;
+	}
 
 	// The plugin hook gives us the raw URL input by the user, but
 	// it needs some cleanup before it's suitable for parse_url().
@@ -45,12 +59,33 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 		return yourls_apply_filter( 'add_new_link_fail_nourl', $return, $url, $keyword, $title );
 	}
 
+	// deny-by-default is the original mode
 	$allowed = false;
+
+	if ( count($domain_denylist) > 0 && count($domain_allowlist) == 0 ) {
+		// if we have a denylist, but no allowlist, then change the default to allow
+		$allowed = true;
+	}
+	
 	$requested_domain = parse_url($url, PHP_URL_HOST);
-	foreach ( $domain_whitelist as $domain_permitted ) {
-		if ( domainlimit_is_subdomain( $requested_domain, $domain_permitted ) ) {
-			$allowed = true;
-			break;
+	if ( is_array( $domain_allowlist ) ) {
+		foreach ( $domain_allowlist as $domain_permitted ) {
+			if ( domainlimit_is_subdomain( $requested_domain, $domain_permitted ) ) {
+				$allowed = true;
+				break;
+			}
+		}
+	}
+	if ( is_array( $domain_denylist ) ) {
+		foreach ( $domain_denylist as $domain_denied ) {
+			if ( domainlimit_is_subdomain( $requested_domain, $domain_denied ) ) {
+				$return = array();
+				$return['status'] = 'fail';
+				$return['code'] = 'error:disallowedhost';
+				$return['message'] = "Creating links to $domain_denied is not permitted";
+				$return['errorCode'] = '400';
+				return $return;
+			}
 		}
 	}
 
@@ -61,7 +96,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 	$return = array();
 	$return['status'] = 'fail';
 	$return['code'] = 'error:disallowedhost';
-	$return['message'] = 'URL must be in ' . implode(', ', $domain_whitelist);
+	$return['message'] = 'URL must be in ' . implode(', ', $domain_allowlist);
 	$return['errorCode'] = '400';
 	return $return;
 }
@@ -87,15 +122,16 @@ function domainlimit_is_subdomain( $test_domain, $parent_domain ) {
 
 // returns true if everything is configured right
 function domainlimit_environment_check() {
-	global $domainlimit_list;
-	if ( !isset( $domainlimit_list ) ) {
-		error_log('Missing definition of $domainlimit_list in user/config.php');
-		return false;
-	} else if ( isset( $domainlimit_list ) && !is_array( $domainlimit_list ) ) {
+	if ( !isset( $GLOBALS['domainlimit_list'] ) ) {
+		$GLOBALS['domainlimit_list'] = array();
+	}
+	if (!is_array($GLOBALS['domainlimit_list'])) {
 		// be friendly and allow non-array definitions
-		$domain = $domainlimit_list;
-		$domainlimit_list = array( $domain );
-		return true;
+		$GLOBALS['domainlimit_list'] = array( $GLOBALS['domainlimit_list'] );
+	}
+
+	if ( !isset( $GLOBALS['domainlimit_denylist'] ) ) {
+		$GLOBALS['domainlimit_denylist'] = array();
 	}
 	return true;
 }

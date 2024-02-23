@@ -16,10 +16,21 @@ Installation
 Configuration
 -------------
 Define a list of allowed domains in your user/config.php. For example:
-`$domainlimit_list = array( 'mydomain.com', 'otherdomain.com' );`
+```php
+$domainlimit_list = array( 'mydomain.com', 'otherdomain.com' );
+```
 
-You may also optionally specify a list of usernames that are exempt from this restriction.
-`domainlimit_exempt_users = array( 'bobadmin' );`
+Or a list of denied domains:
+
+```php
+$domainlimit_denylist = array( 'excluded.mydomain.com', 'not.this.otherdomain.com' )
+````
+
+You may also optionally specify a list of usernames that are exempt from these restrictions.
+
+```php
+$domainlimit_exempt_users = array( 'bobadmin' );
+```
 
 License
 -------

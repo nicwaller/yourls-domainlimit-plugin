@@ -21,8 +21,6 @@ function yourls_apply_filter($name, $return, $url, $keyword, $title) {
 // set up a mock environment like YOURLS
 function mockEnvironment() {
 	define( "YOURLS_ABSPATH", true );
-	global $domainlimit_list;
-	$domainlimit_list = array('allowed.example.com');
 }
 
 mockEnvironment();
@@ -66,6 +64,19 @@ function expect($url, $expected) /* bool */ {
 }
 
 function testSuite() {
+	echo "---Testing Configless---\n";
+	$GLOBALS['domainlimit_list'] = null;
+	$GLOBALS['domainlimit_denylist'] = null;
+
+	// it should "fail open"
+	expect("https://example.com", array(
+		"status" => "success",
+	));
+
+	echo "---Testing Allowlist---\n";
+	$GLOBALS['domainlimit_list'] = array('allowed.example.com');
+	$GLOBALS['domainlimit_denylist'] = null;
+
 	expect("", array(
 		"status" => "fail",
 		"code" => "error:nourl",
@@ -97,24 +108,69 @@ function testSuite() {
 		"code" => "error:disallowedhost",
 		"errorCode" => "400",
 	));
+
+	expect("https://badsite.com", array(
+		"status" => "fail",
+		"code" => "error:disallowedhost",
+		"errorCode" => "400",
+	));
+
+	expect("https://subdomain.badsite.com", array(
+		"status" => "fail",
+		"code" => "error:disallowedhost",
+		"errorCode" => "400",
+	));
+
+	echo "---Testing Denylist---\n";
+	$GLOBALS['domainlimit_list'] = null;
+	$GLOBALS['domainlimit_denylist'] = array('badsite.com');
+
+	expect("https://example.com", array(
+		"status" => "success",
+	));
+
+	expect("https://notabadsite.com", array(
+		"status" => "success",
+	));
+
+	expect("https://badsite.com", array(
+		"status" => "fail",
+		"code" => "error:disallowedhost",
+		"errorCode" => "400",
+	));
+
+	expect("https://subdomain.badsite.com", array(
+		"status" => "fail",
+		"code" => "error:disallowedhost",
+		"errorCode" => "400",
+	));
+
+	echo "---Testing Allowlist + Denylist---\n";
+	$GLOBALS['domainlimit_list'] = array('allowed.example.com');
+	$GLOBALS['domainlimit_denylist'] = array('badsite.com');
+
+	expect("https://badsite.com", array(
+		"status" => "fail",
+		"code" => "error:disallowedhost",
+		"errorCode" => "400",
+	));
+
+	expect("https://subdomain.badsite.com", array(
+		"status" => "fail",
+		"code" => "error:disallowedhost",
+		"errorCode" => "400",
+	));
+
 }
 
 // Note: YOURLS only defines YOURLS_USER after verifying authentication
 // but the plugin should continue to work, regardless
-echo "Scenario: YOURLS_USER is undefined\n";
+echo "\n=== Scenario: YOURLS_USER is undefined ===\n";
 testSuite();
-echo "Scenario: YOURLS_USER is defined\n";
+echo "\n=== Scenario: YOURLS_USER is defined ===\n";
 define('YOURLS_USER', 'anonymous');
 testSuite();
 
-// Test what happens if $domainlimit_list is not populated in config
-unset($domainlimit_list);
-
-expect("https://example.com", array(
-	"status" => "fail",
-	"code" => "error:configuration",
-	"errorCode" => "500",
-));
 
 $total = $results[false] + $results[true];
 $passed = $results[true];
