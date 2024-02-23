@@ -14,14 +14,7 @@ if( !defined( 'YOURLS_ABSPATH' ) ) die();
 yourls_add_filter( 'shunt_add_new_link', 'domainlimit_link_filter' );
 
 function domainlimit_link_filter( $original_return, $url, $keyword = '', $title = '' ) {
-	if ( domainlimit_environment_check() != true ) {
-		$err = array();
-		$err['status'] = 'fail';
-		$err['code'] = 'error:configuration';
-		$err['message'] = 'Problem with domain limit configuration. Check PHP error log.';
-		$err['errorCode'] = '500';
-		return $err;
-	}
+	domainlimit_environment_check();
 
 	// If the user is exempt, don't even bother checking.
 	global $domainlimit_exempt_users;
@@ -31,17 +24,8 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 		}
 	}
 
-	if (isset($GLOBALS['domainlimit_list'])) {
-		$domain_allowlist = $GLOBALS['domainlimit_list'];
-	} else {
-		$domain_allowlist = array();
-	}
-
-	if (isset($GLOBALS['domainlimit_denylist'])) {
-		$domain_denylist = $GLOBALS['domainlimit_denylist'];
-	} else {
-		$domain_denylist = array();
-	}
+	$domain_allowlist = $GLOBALS['domainlimit_list'];
+	$domain_denylist = $GLOBALS['domainlimit_denylist'];
 
 	// if we have no allowlist or denylist then don't block anything ("fail open")
 	if ( count($domain_denylist) == 0 && count($domain_allowlist) == 0 ) {
@@ -68,6 +52,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 	}
 	
 	$requested_domain = parse_url($url, PHP_URL_HOST);
+
 	if ( is_array( $domain_allowlist ) ) {
 		foreach ( $domain_allowlist as $domain_permitted ) {
 			if ( domainlimit_is_subdomain( $requested_domain, $domain_permitted ) ) {
@@ -76,6 +61,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 			}
 		}
 	}
+
 	if ( is_array( $domain_denylist ) ) {
 		foreach ( $domain_denylist as $domain_denied ) {
 			if ( domainlimit_is_subdomain( $requested_domain, $domain_denied ) ) {
@@ -89,7 +75,7 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 		}
 	}
 
-	if ( $allowed == true ) {
+	if ( $allowed ) {
 		return $original_return;
 	}
 
@@ -120,18 +106,13 @@ function domainlimit_is_subdomain( $test_domain, $parent_domain ) {
 	return ( $parent_domain == substr( $test_domain, 0-$chklen ) );
 }
 
-// returns true if everything is configured right
 function domainlimit_environment_check() {
-	if ( !isset( $GLOBALS['domainlimit_list'] ) ) {
-		$GLOBALS['domainlimit_list'] = array();
-	}
-	if (!is_array($GLOBALS['domainlimit_list'])) {
-		// be friendly and allow non-array definitions
-		$GLOBALS['domainlimit_list'] = array( $GLOBALS['domainlimit_list'] );
-	}
-
-	if ( !isset( $GLOBALS['domainlimit_denylist'] ) ) {
-		$GLOBALS['domainlimit_denylist'] = array();
-	}
-	return true;
+	$ensureArray = function($name) {
+		if ( !isset( $GLOBALS[$name] ) || !is_array( $GLOBALS[$name] ) ) {
+			$GLOBALS[$name] = array();
+		}
+	};
+	$ensureArray('$domainlimit_exempt_users');
+	$ensureArray('domainlimit_list');
+	$ensureArray('domainlimit_denylist');
 }
