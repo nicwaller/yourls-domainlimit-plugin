@@ -72,6 +72,12 @@ function testSuite() {
 		"errorCode" => "400",
 	));
 
+	expect("example.com", array(
+		"status" => "fail",
+		"code" => "error:missingScheme",
+		"errorCode" => "400",
+	));
+
 	expect("https://example.com", array(
 		"status" => "fail",
 		"code" => "error:disallowedhost",

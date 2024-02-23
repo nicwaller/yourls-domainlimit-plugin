@@ -3,7 +3,7 @@
 Plugin Name: Domain Limiter
 Plugin URI: https://github.com/nicwaller/yourls-domainlimit-plugin
 Description: Only allow URLs from admin-specified domains
-Version: 1.1.1
+Version: 1.1.2
 Author: nicwaller
 Author URI: https://github.com/nicwaller
 */
@@ -46,6 +46,18 @@ function domainlimit_link_filter( $original_return, $url, $keyword = '', $title 
 	}
 
 	$allowed = false;
+
+	if (!preg_match('/^https?:/', $url)) {
+		// if there is no scheme prefix then parse_url() won't give us a hostname
+		// also, YOURLS redirects don't work correctly if the scheme prefix is missing
+		$return = array();
+		$return['status'] = 'fail';
+		$return['code'] = 'error:missingScheme';
+		$return['message'] = 'URL must have http:// or https:// scheme prefix';
+		$return['errorCode'] = '400';
+		return $return;
+	}
+
 	$requested_domain = parse_url($url, PHP_URL_HOST);
 	foreach ( $domain_whitelist as $domain_permitted ) {
 		if ( domainlimit_is_subdomain( $requested_domain, $domain_permitted ) ) {
